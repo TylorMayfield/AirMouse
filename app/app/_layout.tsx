@@ -1,0 +1,16 @@
+import { Stack } from 'expo-router';
+import { PaperProvider } from 'react-native-paper';
+import { SocketProvider } from '@/lib/SocketContext';
+
+export default function RootLayout() {
+  return (
+    <PaperProvider>
+      <SocketProvider>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="mouse" />
+        </Stack>
+      </SocketProvider>
+    </PaperProvider>
+  );
+}

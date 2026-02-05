@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Air Mouse - Pair with phone</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #eee;
+      padding: 24px;
+    }
+    h1 { margin: 0 0 8px; font-size: 1.5rem; }
+    p { margin: 0 0 24px; opacity: 0.8; font-size: 0.95rem; }
+    #qrcode {
+      background: #fff;
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+    #qrcode canvas, #qrcode img { display: block !important; }
+    .room-id {
+      font-size: 1.25rem;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      padding: 12px 24px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+    .hint { font-size: 0.85rem; opacity: 0.7; }
+  </style>
+</head>
+<body>
+  <h1>Air Mouse</h1>
+  <p>Scan this QR code with your phone to connect</p>
+  <div id="qrcode">
+    <img src="__QR_DATA_URL__" alt="QR code" width="220" height="220" />
+  </div>
+  <div class="room-id" id="roomId">__ROOM_ID__</div>
+  <div class="hint">Or enter this code in the app</div>
+</body>
+</html>

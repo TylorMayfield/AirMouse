@@ -1,0 +1,11 @@
+{
+  "name": "airmouse",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Use your phone as a mouse for your computer",
+  "scripts": {
+    "desktop": "cd desktop && npm start",
+    "app": "cd app && npx expo start",
+    "install:all": "cd desktop && npm install && cd ../app && npm install"
+  }
+}
