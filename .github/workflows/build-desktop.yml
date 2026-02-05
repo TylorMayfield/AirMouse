@@ -1,0 +1,48 @@
+name: Build desktop
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            build-script: build:win
+            artifact-name: desktop-windows
+          - os: macos-latest
+            build-script: build:mac
+            artifact-name: desktop-macos
+          - os: ubuntu-latest
+            build-script: build:linux
+            artifact-name: desktop-linux
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: desktop/package-lock.json
+
+      - name: Install dependencies
+        working-directory: desktop
+        run: npm ci
+
+      - name: Build executable
+        working-directory: desktop
+        run: npm run ${{ matrix.build-script }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: desktop/dist/

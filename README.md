@@ -69,6 +69,23 @@ The `server/` folder is no longer used for the normal flow; the desktop app embe
 - **Port:** Default is a random port (49152–65535). Set `PORT` to fix it: `PORT=3000 npm start` (in the `desktop` folder).
 - The **QR code** always uses the current port (and your machine’s LAN IP when possible) so the phone connects to the right address.
 
+## Building a standalone executable (desktop)
+
+Using [pkg](https://github.com/vercel/pkg), you can build a single executable so others can run the desktop app without installing Node.js.
+
+From the `desktop` folder:
+
+```bash
+npm install
+npm run build
+```
+
+**`npm run build`** builds for the **current platform only** (e.g. on Windows you get `airmouse-desktop-win-x64.exe` in `dist/`). This avoids cross-compilation issues on Windows.
+
+To build for a specific platform: `npm run build:win`, `npm run build:mac`, or `npm run build:linux`. To build all platforms at once (works best on macOS/Linux; can hit “spawn” errors on Windows), use `npm run build:all`.
+
+Run the executable the same way as `node index.js` (it will pick a port and open the pairing page in your browser).
+
 ## Tech stack
 
 - **Desktop:** Express, Socket.IO (server + client), QRCode, nut.js (mouse), open (browser)
