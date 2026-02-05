@@ -12,7 +12,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#1a1a2e"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.airmouse.app"
@@ -31,7 +33,8 @@
         {
           "cameraPermission": "Allow Air Mouse to access your camera to scan the pairing QR code."
         }
-      ]
+      ],
+      "expo-asset"
     ]
   }
 }

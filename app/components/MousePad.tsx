@@ -1,49 +1,77 @@
 import { useRef } from 'react';
-import { View, StyleSheet, PanResponder } from 'react-native';
+import { View, StyleSheet, PanResponder, Pressable } from 'react-native';
 import { Socket } from 'socket.io-client';
 
 const MOVE_SCALE = 1.2;
-const LONG_PRESS_MS = 500;
+const SCROLL_SCALE = 0.5;
 
 type MousePadProps = {
   socket: Socket;
 };
 
 export function MousePad({ socket }: MousePadProps) {
-  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const lastMove = useRef<{ x: number; y: number } | null>(null);
+  const lastX = useRef(0);
+  const lastY = useRef(0);
+  const lastTapTime = useRef(0);
+  const longPressTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  const pan = PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onMoveShouldSetPanResponder: () => true,
-    onPanResponderGrant: (_, gestureState) => {
-      lastMove.current = { x: gestureState.x0, y: gestureState.y0 };
-      longPressTimer.current = setTimeout(() => {
-        longPressTimer.current = null;
-        socket.emit('mouse:click', { button: 'right' });
-      }, LONG_PRESS_MS);
-    },
-    onPanResponderMove: (_, gestureState) => {
-      if (lastMove.current) {
-        const dx = (gestureState.moveX - lastMove.current.x) * MOVE_SCALE;
-        const dy = (gestureState.moveY - lastMove.current.y) * MOVE_SCALE;
-        lastMove.current = { x: gestureState.moveX, y: gestureState.moveY };
-        socket.emit('mouse:move', { dx, dy });
-      }
-    },
-    onPanResponderRelease: (_, gestureState) => {
-      if (longPressTimer.current) {
-        clearTimeout(longPressTimer.current);
-        longPressTimer.current = null;
-        const moved = Math.abs(gestureState.dx) + Math.abs(gestureState.dy) >= 10;
-        if (!moved) socket.emit('mouse:click', { button: 'left' });
-      }
-      lastMove.current = null;
-    },
-  });
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: (evt, gestureState) => {
+        lastX.current = gestureState.x0;
+        lastY.current = gestureState.y0;
+
+        // Start long press timer
+        longPressTimeout.current = setTimeout(() => {
+          socket.emit('mouse:click', { button: 'right' });
+          longPressTimeout.current = null;
+        }, 600);
+      },
+      onPanResponderMove: (evt, gestureState) => {
+        const dx = (gestureState.moveX - lastX.current) * MOVE_SCALE;
+        const dy = (gestureState.moveY - lastY.current) * MOVE_SCALE;
+
+        lastX.current = gestureState.moveX;
+        lastY.current = gestureState.moveY;
+
+        // If moved significantly, cancel long press
+        if (Math.abs(gestureState.dx) > 10 || Math.abs(gestureState.dy) > 10) {
+          if (longPressTimeout.current) {
+            clearTimeout(longPressTimeout.current);
+            longPressTimeout.current = null;
+          }
+        }
+
+        if (evt.nativeEvent.touches.length === 2) {
+          socket.emit('mouse:scroll', { dy: dy * SCROLL_SCALE });
+        } else {
+          socket.emit('mouse:move', { dx, dy });
+        }
+      },
+      onPanResponderRelease: (evt, gestureState) => {
+        if (longPressTimeout.current) {
+          clearTimeout(longPressTimeout.current);
+          longPressTimeout.current = null;
+
+          // Simple tap detection
+          if (Math.abs(gestureState.dx) < 5 && Math.abs(gestureState.dy) < 5) {
+            socket.emit('mouse:click', { button: 'left' });
+          }
+        }
+      },
+      onPanResponderTerminate: () => {
+        if (longPressTimeout.current) {
+          clearTimeout(longPressTimeout.current);
+          longPressTimeout.current = null;
+        }
+      },
+    })
+  ).current;
 
   return (
-    <View style={styles.pad} {...pan.panHandlers}>
+    <View style={styles.pad} {...panResponder.panHandlers}>
       <View style={styles.padInner} />
     </View>
   );

@@ -71,6 +71,15 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     setRoomIdState(id);
   }, []);
 
+  React.useEffect(() => {
+    return () => {
+      if (socket) {
+        socket.disconnect();
+        socket.removeAllListeners();
+      }
+    };
+  }, [socket]);
+
   return (
     <SocketContext.Provider
       value={{

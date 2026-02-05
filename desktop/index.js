@@ -16,7 +16,7 @@ const cors = require('cors');
 const { exec } = require('child_process');
 function openBrowser(url) {
   const cmd = process.platform === 'win32' ? `start "" "${url}"` : process.platform === 'darwin' ? `open "${url}"` : `xdg-open "${url}"`;
-  exec(cmd, () => {});
+  exec(cmd, () => { });
 }
 const { io } = require('socket.io-client');
 const { mouse } = require('@nut-tree-fork/nut-js');
@@ -87,7 +87,7 @@ app.get('/pair/:roomId', async (req, res) => {
   let qrDataUrl = '';
   try {
     qrDataUrl = await QRCode.toDataURL(connectUrl, { width: 220, margin: 1 });
-  } catch (_) {}
+  } catch (_) { }
   if (!qrDataUrl) qrDataUrl = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="220" height="220"/>';
   const htmlPath = path.join(__dirname, 'pair.html');
   let html = fs.readFileSync(htmlPath, 'utf8');
@@ -195,36 +195,58 @@ function onListening(PORT) {
     console.log('  Waiting for phone... Scan the QR code in the browser.\n');
   });
 
-  socket.on('paired', () => {
+  socket.on('paired', async () => {
     console.log('  Phone connected. Use your phone as a mouse.\n');
-  });
-
-  socket.on('mouse:move', async (data) => {
+    // Initialize virtual position to current system position
     try {
       const pos = await mouse.getPosition();
-      const newX = Math.round(pos.x + (data.dx || 0));
-      const newY = Math.round(pos.y + (data.dy || 0));
-      await mouse.setPosition({ x: newX, y: newY });
-    } catch (_) {}
+      virtualX = pos.x;
+      virtualY = pos.y;
+      initialized = true;
+    } catch (_) { }
+  });
+
+  let virtualX = 0;
+  let virtualY = 0;
+  let initialized = false;
+
+  socket.on('mouse:move', async (data) => {
+    if (!initialized) return;
+
+    // Update virtual position
+    virtualX += (data.dx || 0);
+    virtualY += (data.dy || 0);
+
+    // Apply movement
+    try {
+      await mouse.setPosition({
+        x: Math.round(virtualX),
+        y: Math.round(virtualY)
+      });
+    } catch (_) { }
   });
 
   socket.on('mouse:click', async (data) => {
     try {
       if (data.button === 'right') await mouse.rightClick();
       else await mouse.leftClick();
-    } catch (_) {}
+    } catch (_) { }
   });
 
   socket.on('mouse:scroll', async (data) => {
     try {
       const amount = data.dy != null ? data.dy : data.deltaY || 0;
-      const steps = Math.round(Math.abs(amount) / 40) || 1;
+      // Scale down the deltas for smoother small movements
+      const steps = Math.round(Math.abs(amount) / 5) || (Math.abs(amount) > 0.5 ? 1 : 0);
+
+      if (steps === 0) return;
+
       if (amount > 0) {
-        for (let i = 0; i < steps; i++) await mouse.scrollDown();
+        await mouse.scrollDown(steps);
       } else if (amount < 0) {
-        for (let i = 0; i < steps; i++) await mouse.scrollUp();
+        await mouse.scrollUp(steps);
       }
-    } catch (_) {}
+    } catch (_) { }
   });
 
   socket.on('disconnect', (reason) => {

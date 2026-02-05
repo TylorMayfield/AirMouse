@@ -6,10 +6,7 @@ export default function RootLayout() {
   return (
     <PaperProvider>
       <SocketProvider>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="index" />
-          <Stack.Screen name="mouse" />
-        </Stack>
+        <Stack screenOptions={{ headerShown: false }} />
       </SocketProvider>
     </PaperProvider>
   );

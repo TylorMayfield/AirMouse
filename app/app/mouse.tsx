@@ -6,12 +6,7 @@ import { MousePad } from '@/components/MousePad';
 
 export default function MouseScreen() {
   const theme = useTheme();
-  const { socket, connected, disconnect } = useSocket();
-
-  const handleDisconnect = () => {
-    disconnect();
-    router.replace('/');
-  };
+  const { socket, connected } = useSocket();
 
   if (!socket || !connected) {
     return (
@@ -25,22 +20,11 @@ export default function MouseScreen() {
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <View style={styles.header}>
-        <Text variant="titleMedium" numberOfLines={2}>
+        <Text variant="titleMedium" style={styles.headerText}>
           Touch to move • Tap click • Long-press right-click
         </Text>
-        <Button mode="text" onPress={handleDisconnect} compact>
-          Disconnect
-        </Button>
       </View>
       <MousePad socket={socket} />
-      <View style={styles.scrollRow}>
-        <Button mode="outlined" onPress={() => socket.emit('mouse:scroll', { dy: 120 })} compact>
-          Scroll up
-        </Button>
-        <Button mode="outlined" onPress={() => socket.emit('mouse:scroll', { dy: -120 })} compact>
-          Scroll down
-        </Button>
-      </View>
     </View>
   );
 }
@@ -51,16 +35,13 @@ const styles = StyleSheet.create({
     paddingTop: 48,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingBottom: 8,
+    paddingBottom: 16,
   },
-  scrollRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 12,
-    padding: 16,
+  headerText: {
+    textAlign: 'center',
+    opacity: 0.7,
   },
 });
